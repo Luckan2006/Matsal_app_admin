@@ -4,6 +4,7 @@ body {
   padding: 0;
   height: 100%;
   width: 100%;
+  overflow: hidden; /* ingen scroll på desktop */
 }
 
 body {
@@ -11,26 +12,91 @@ body {
   background: #e0e0e0;
 }
 
+/* --- Admin-wrapper --- */
+
 .admin {
   height: 100vh;
   width: 100vw;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
   box-sizing: border-box;
-
+  padding: 1.25rem 1.75rem;
   background: linear-gradient(135deg, #f5f5f5, #d0d0d0);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Logga ut-knappen uppe i hörnet */
+.logout-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+/* Huvudlayout: vänster (tabeller) + höger (graf) */
+.admin-main {
+  flex: 1;
+  display: flex;
+  gap: 1.75rem;
+  align-items: flex-start;
+  max-width: 1300px;
+  margin: 0 auto;
+  margin-top: 2.5rem;
+  overflow: hidden;
+}
+
+.admin-left {
+  flex: 2;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.admin-right {
+  flex: 1.2;
+  min-width: 260px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Rubriker */
 .admin h1 {
-  margin-bottom: 1.5rem;
-  font-size: 2rem;
+  margin: 0;
+  font-size: 2.1rem;
 }
 
+.admin-left h2,
+.admin-right h2,
+.admin-right h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+/* Tabeller */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+th,
+td {
+  padding: 0.7rem 0.9rem;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+/* Knappar generellt */
 button {
-  background: #b0b0b0;         
+  background: #b0b0b0;
   color: #000;
   border: none;
   border-radius: 0.5rem;
@@ -49,48 +115,116 @@ button:active {
   transform: scale(0.97);
 }
 
-.logout-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+/* Uppdatera-knappen */
+.buttons-row {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-start;
 }
 
-table {
+.refresh-btn {
+  background: #b0b0b0;
+  color: #000;
+  border-radius: 0.5rem;
+  padding: 0.55rem 1.25rem;
+}
+
+/* --- Graf & summering --- */
+
+.chart-wrapper {
   width: 100%;
-  max-width: 700px;
-  border-collapse: collapse;
-  background: white;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  height: 260px;
+  margin-top: 0.5rem;
 }
 
-th,
-td {
+.week-summary-box {
+  margin-top: 0.5rem;
+  background: #f5f5f5;
+  border-radius: 0.5rem;
   padding: 0.75rem 1rem;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
 }
 
-th {
-  background: #f0f0f0;
-  font-weight: 600;
+.week-summary-box ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.5rem 0 0;
 }
 
-@media (max-width: 600px) {
+.week-summary-box li {
+  margin-bottom: 0.2rem;
+}
+
+/* Färgkodade punkter i summeringen, matchar COLORS i JS */
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.summary-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+.summary-dot-one {
+  background: #8884d8; /* Hann inte äta */
+}
+
+.summary-dot-three {
+  background: #ffc658; /* Ogillade maten */
+}
+
+.summary-dot-four {
+  background: #ff7f7f; /* Slängde inte */
+}
+
+.summary-dot-two {
+  background: #82ca9d; /* Tog för mycket */
+}
+
+/* --- Responsiv layout --- */
+
+@media (max-width: 900px) {
+  html,
+  body {
+    overflow: auto; /* tillåt scroll på små skärmar */
+  }
+
   .admin {
     padding: 1rem;
   }
 
   .admin h1 {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
+  }
+
+  .admin-main {
+    flex-direction: column;
+    margin-top: 2.5rem;
+    overflow: visible;
+  }
+
+  .admin-right {
+    width: 100%;
   }
 
   table {
     font-size: 0.9rem;
   }
+
+  .chart-wrapper {
+    height: 240px;
+  }
 }
 
-.refresh-btn {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
+@media (max-width: 600px) {
+  .admin h1 {
+    font-size: 1.4rem;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
 }
