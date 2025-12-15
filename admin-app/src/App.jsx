@@ -2,27 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabaseClient";
 import Login from "./Login";
 import "./app.css";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f7f"]; 
-
+const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f7f"];
 const RADIAN = Math.PI / 180;
 
-const renderPercentLabel = ({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  percent,
-}) => {
+const renderPercentLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -178,6 +163,8 @@ function App() {
   const rangeTotal =
     rangeTotals.one + rangeTotals.two + rangeTotals.three + rangeTotals.four;
 
+  const showPeriodBlock = rangeTotal !== selectedTotal;
+
   if (!session) return <Login />;
 
   if (loading) {
@@ -237,10 +224,7 @@ function App() {
             <div className="range-controls">
               <label className="range-label">
                 Visa:
-                <select
-                  value={daysToShow}
-                  onChange={(e) => setDaysToShow(Number(e.target.value))}
-                >
+                <select value={daysToShow} onChange={(e) => setDaysToShow(Number(e.target.value))}>
                   <option value={7}>7 dagar</option>
                   <option value={14}>14 dagar</option>
                   <option value={30}>30 dagar</option>
@@ -325,7 +309,7 @@ function App() {
                     ))}
                   </Pie>
                   <Tooltip />
-                  <Legend />
+                  <Legend verticalAlign="bottom" height={48} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -334,31 +318,61 @@ function App() {
           <h3 style={{ marginTop: "1.2rem" }}>Summering</h3>
 
           <div className="week-summary-box">
-            <p>
-              <strong>Vald dag totalt:</strong> {selectedTotal}
-            </p>
-            <p style={{ marginTop: "0.5rem" }}>
-              <strong>Totalt i perioden ({daysToShow} dagar):</strong> {rangeTotal}
-            </p>
+            <div className="summary-block">
+              <p className="summary-title">
+                <strong>Vald dag total:</strong> {selectedTotal}
+              </p>
 
-            <ul style={{ marginTop: "0.75rem" }}>
-              <li className="summary-item">
-                <span className="summary-dot summary-dot-one" />
-                <span>Hann inte äta (period): {rangeTotals.one}</span>
-              </li>
-              <li className="summary-item">
-                <span className="summary-dot summary-dot-two" />
-                <span>Tog för mycket (period): {rangeTotals.two}</span>
-              </li>
-              <li className="summary-item">
-                <span className="summary-dot summary-dot-three" />
-                <span>Ogillade maten (period): {rangeTotals.three}</span>
-              </li>
-              <li className="summary-item">
-                <span className="summary-dot summary-dot-four" />
-                <span>Slängde inte (period): {rangeTotals.four}</span>
-              </li>
-            </ul>
+              <ul className="summary-list">
+                <li className="summary-item">
+                  <span className="summary-dot summary-dot-one" />
+                  <span>Hann inte äta (vald dag): {selectedCounts.one}</span>
+                </li>
+                <li className="summary-item">
+                  <span className="summary-dot summary-dot-two" />
+                  <span>Tog för mycket (vald dag): {selectedCounts.two}</span>
+                </li>
+                <li className="summary-item">
+                  <span className="summary-dot summary-dot-three" />
+                  <span>Ogillade maten (vald dag): {selectedCounts.three}</span>
+                </li>
+                <li className="summary-item">
+                  <span className="summary-dot summary-dot-four" />
+                  <span>Slängde inte (vald dag): {selectedCounts.four}</span>
+                </li>
+              </ul>
+            </div>
+
+            {showPeriodBlock && (
+              <>
+                <div className="summary-sep" />
+
+                <div className="summary-block">
+                  <p className="summary-title">
+                    <strong>Totalt i perioden ({daysToShow} dagar):</strong> {rangeTotal}
+                  </p>
+
+                  <ul className="summary-list">
+                    <li className="summary-item">
+                      <span className="summary-dot summary-dot-one" />
+                      <span>Hann inte äta (period): {rangeTotals.one}</span>
+                    </li>
+                    <li className="summary-item">
+                      <span className="summary-dot summary-dot-two" />
+                      <span>Tog för mycket (period): {rangeTotals.two}</span>
+                    </li>
+                    <li className="summary-item">
+                      <span className="summary-dot summary-dot-three" />
+                      <span>Ogillade maten (period): {rangeTotals.three}</span>
+                    </li>
+                    <li className="summary-item">
+                      <span className="summary-dot summary-dot-four" />
+                      <span>Slängde inte (period): {rangeTotals.four}</span>
+                    </li>
+                  </ul>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
