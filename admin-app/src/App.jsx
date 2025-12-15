@@ -309,14 +309,14 @@ function App() {
           ) : (
             <div className="chart-wrapper">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                   <Pie
                     data={pieData}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
-                    cy="50%"
-                    outerRadius={85}
+                    cy="45%"
+                    outerRadius={75}
                     label={renderPercentLabel}
                     labelLine={false}
                   >
@@ -359,12 +359,6 @@ function App() {
                 <span>Slängde inte (period): {rangeTotals.four}</span>
               </li>
             </ul>
-          </div>
-
-          <div className="buttons-row">
-            <button className="refresh-btn" onClick={() => fetchClicks(daysToShow)}>
-              Uppdatera
-            </button>
           </div>
         </div>
       </div>
