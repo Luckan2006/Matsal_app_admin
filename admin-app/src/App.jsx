@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabaseClient";
 import Login from "./Login";
 import "./app.css";
@@ -11,7 +11,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const COLORS = ["#8884d8", "#ffc658", "#ff7f7f", "#82ca9d"]; // matchar ordningen i pieData
+const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f7f"]; 
+
 const RADIAN = Math.PI / 180;
 
 const renderPercentLabel = ({
@@ -22,7 +23,7 @@ const renderPercentLabel = ({
   outerRadius,
   percent,
 }) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -42,11 +43,19 @@ const renderPercentLabel = ({
 
 function App() {
   const [session, setSession] = useState(null);
-  const [counts, setCounts] = useState(null);
-  const [weekData, setWeekData] = useState([]);
+
+  const [countsToday, setCountsToday] = useState(null);
+  const [rangeRows, setRangeRows] = useState([]);
+
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [daysToShow, setDaysToShow] = useState(7);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const todayLabel = new Date().toLocaleDateString("sv-SE");
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const todayLabel = today.toLocaleDateString("sv-SE");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -60,59 +69,11 @@ function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  async function fetchClicks() {
-    setLoading(true);
-    setError(null);
-
-    const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
-
-    const { data, error } = await supabase
-      .from("clicks")
-      .select("day, one, two, three, four")
-      .order("day", { ascending: false })
-      .limit(7);
-
-    if (error) {
-      console.error(error);
-      setError("Kunde inte hämta data");
-      setLoading(false);
-      return;
-    }
-
-    const rows = (data || []).slice().reverse();
-    setWeekData(rows);
-
-    const todayRow = rows.find((r) => r.day === todayStr);
-
-    if (todayRow) {
-      setCounts({
-        one: todayRow.one,
-        two: todayRow.two,
-        three: todayRow.three,
-        four: todayRow.four,
-      });
-    } else {
-      setCounts({
-        one: 0,
-        two: 0,
-        three: 0,
-        four: 0,
-      });
-    }
-
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    if (!session) return;
-    fetchClicks();
-  }, [session]);
-
   async function logout() {
     await supabase.auth.signOut();
-    setCounts(null);
-    setWeekData([]);
+    setCountsToday(null);
+    setRangeRows([]);
+    setSelectedDay(null);
   }
 
   function formatDay(dayStr) {
@@ -124,28 +85,98 @@ function App() {
     });
   }
 
-  const weeklyTotals = weekData.reduce(
-    (acc, row) => ({
-      one: acc.one + (row.one || 0),
-      two: acc.two + (row.two || 0),
-      three: acc.three + (row.three || 0),
-      four: acc.four + (row.four || 0),
-    }),
-    { one: 0, two: 0, three: 0, four: 0 }
-  );
+  async function fetchClicks(limitDays = daysToShow) {
+    setLoading(true);
+    setError(null);
 
-  const pieData = [
-    { name: "Hann inte äta", value: weeklyTotals.one },
-    { name: "Ogillade maten", value: weeklyTotals.three },
-    { name: "Slängde inte", value: weeklyTotals.four },
-    { name: "Tog för mycket", value: weeklyTotals.two },
-  ].filter((item) => item.value > 0);
+    const { data, error } = await supabase
+      .from("daily_clicks")
+      .select("day, one, two, three, four")
+      .order("day", { ascending: false })
+      .limit(limitDays);
 
-  const weekTotal =
-    weeklyTotals.one +
-    weeklyTotals.two +
-    weeklyTotals.three +
-    weeklyTotals.four;
+    if (error) {
+      console.error(error);
+      setError("Kunde inte hämta data");
+      setLoading(false);
+      return;
+    }
+
+    const rows = (data || []).slice().reverse();
+    setRangeRows(rows);
+
+    const todayRow = rows.find((r) => r.day === todayStr);
+    if (todayRow) {
+      setCountsToday({
+        one: todayRow.one ?? 0,
+        two: todayRow.two ?? 0,
+        three: todayRow.three ?? 0,
+        four: todayRow.four ?? 0,
+      });
+    } else {
+      setCountsToday({ one: 0, two: 0, three: 0, four: 0 });
+    }
+
+    if (!selectedDay) {
+      const fallback =
+        rows.find((r) => r.day === todayStr)?.day ?? rows[rows.length - 1]?.day ?? null;
+      setSelectedDay(fallback);
+    } else {
+      const stillExists = rows.some((r) => r.day === selectedDay);
+      if (!stillExists) {
+        setSelectedDay(rows[rows.length - 1]?.day ?? null);
+      }
+    }
+
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    if (!session) return;
+    fetchClicks(daysToShow);
+  }, [session, daysToShow]);
+
+  const selectedRow = useMemo(() => {
+    if (!selectedDay) return null;
+    return rangeRows.find((r) => r.day === selectedDay) ?? null;
+  }, [rangeRows, selectedDay]);
+
+  const selectedCounts = useMemo(() => {
+    if (!selectedRow) return { one: 0, two: 0, three: 0, four: 0 };
+    return {
+      one: selectedRow.one ?? 0,
+      two: selectedRow.two ?? 0,
+      three: selectedRow.three ?? 0,
+      four: selectedRow.four ?? 0,
+    };
+  }, [selectedRow]);
+
+  const rangeTotals = useMemo(() => {
+    return rangeRows.reduce(
+      (acc, row) => ({
+        one: acc.one + (row.one ?? 0),
+        two: acc.two + (row.two ?? 0),
+        three: acc.three + (row.three ?? 0),
+        four: acc.four + (row.four ?? 0),
+      }),
+      { one: 0, two: 0, three: 0, four: 0 }
+    );
+  }, [rangeRows]);
+
+  const selectedTotal =
+    selectedCounts.one + selectedCounts.two + selectedCounts.three + selectedCounts.four;
+
+  const pieData = useMemo(() => {
+    return [
+      { name: "Hann inte äta", value: selectedCounts.one },
+      { name: "Tog för mycket", value: selectedCounts.two },
+      { name: "Ogillade maten", value: selectedCounts.three },
+      { name: "Slängde inte", value: selectedCounts.four },
+    ].filter((item) => item.value > 0);
+  }, [selectedCounts]);
+
+  const rangeTotal =
+    rangeTotals.one + rangeTotals.two + rangeTotals.three + rangeTotals.four;
 
   if (!session) return <Login />;
 
@@ -162,11 +193,11 @@ function App() {
     );
   }
 
-  if (!counts) {
+  if (!countsToday) {
     return (
       <div style={{ padding: "2rem" }}>
         <button onClick={logout}>Logga ut</button>
-        <h1>Ingen data hittades i clicks</h1>
+        <h1>Ingen data hittades i daily_clicks</h1>
       </div>
     );
   }
@@ -192,50 +223,89 @@ function App() {
             </thead>
             <tbody>
               <tr>
-                <td>{counts.one}</td>
-                <td>{counts.two}</td>
-                <td>{counts.three}</td>
-                <td>{counts.four}</td>
+                <td>{countsToday.one}</td>
+                <td>{countsToday.two}</td>
+                <td>{countsToday.three}</td>
+                <td>{countsToday.four}</td>
               </tr>
             </tbody>
           </table>
 
-          <h2 style={{ marginTop: "1.8rem" }}>Senaste dagarna (max 7)</h2>
+          <div className="range-header">
+            <h2>Historik</h2>
 
-          <table>
-            <thead>
-              <tr>
-                <th>Dag</th>
-                <th>Hann inte äta</th>
-                <th>Tog för mycket</th>
-                <th>Ogillade maten</th>
-                <th>Slängde inte</th>
-              </tr>
-            </thead>
-            <tbody>
-              {weekData.length === 0 && (
+            <div className="range-controls">
+              <label className="range-label">
+                Visa:
+                <select
+                  value={daysToShow}
+                  onChange={(e) => setDaysToShow(Number(e.target.value))}
+                >
+                  <option value={7}>7 dagar</option>
+                  <option value={14}>14 dagar</option>
+                  <option value={30}>30 dagar</option>
+                  <option value={90}>90 dagar</option>
+                  <option value={180}>180 dagar</option>
+                  <option value={365}>1 år</option>
+                </select>
+              </label>
+
+              <button className="refresh-btn" onClick={() => fetchClicks(daysToShow)}>
+                Uppdatera
+              </button>
+            </div>
+          </div>
+
+          <div className="table-scroll">
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan={5}>Ingen data tillgänglig ännu</td>
+                  <th>Dag</th>
+                  <th>Hann inte äta</th>
+                  <th>Tog för mycket</th>
+                  <th>Ogillade maten</th>
+                  <th>Slängde inte</th>
                 </tr>
-              )}
-              {weekData.map((row) => (
-                <tr key={row.day}>
-                  <td>{formatDay(row.day)}</td>
-                  <td>{row.one}</td>
-                  <td>{row.two}</td>
-                  <td>{row.three}</td>
-                  <td>{row.four}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rangeRows.length === 0 && (
+                  <tr>
+                    <td colSpan={5}>Ingen data tillgänglig ännu</td>
+                  </tr>
+                )}
+
+                {rangeRows.map((row) => {
+                  const isSelected = row.day === selectedDay;
+                  return (
+                    <tr
+                      key={row.day}
+                      className={isSelected ? "row-selected" : "row-clickable"}
+                      onClick={() => setSelectedDay(row.day)}
+                      title="Klicka för att visa graf för denna dag"
+                    >
+                      <td>{formatDay(row.day)}</td>
+                      <td>{row.one}</td>
+                      <td>{row.two}</td>
+                      <td>{row.three}</td>
+                      <td>{row.four}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="admin-right">
-          <h2>Fördelning senaste dagarna</h2>
+          <h2>
+            Fördelning för vald dag{" "}
+            <span className="selected-day-pill">
+              {selectedDay ? formatDay(selectedDay) : "Ingen vald"}
+            </span>
+          </h2>
 
           {pieData.length === 0 ? (
-            <p>Ingen data att visa i grafen ännu.</p>
+            <p>Ingen data att visa i grafen för vald dag.</p>
           ) : (
             <div className="chart-wrapper">
               <ResponsiveContainer width="100%" height="100%">
@@ -246,15 +316,12 @@ function App() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius={85}
                     label={renderPercentLabel}
                     labelLine={false}
                   >
-                    {pieData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
+                    {pieData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -264,33 +331,38 @@ function App() {
             </div>
           )}
 
-          <h3 style={{ marginTop: "1.2rem" }}>Summering senaste dagarna</h3>
+          <h3 style={{ marginTop: "1.2rem" }}>Summering</h3>
+
           <div className="week-summary-box">
             <p>
-              <strong>Totalt antal svar:</strong> {weekTotal}
+              <strong>Vald dag totalt:</strong> {selectedTotal}
             </p>
-            <ul>
+            <p style={{ marginTop: "0.5rem" }}>
+              <strong>Totalt i perioden ({daysToShow} dagar):</strong> {rangeTotal}
+            </p>
+
+            <ul style={{ marginTop: "0.75rem" }}>
               <li className="summary-item">
                 <span className="summary-dot summary-dot-one" />
-                <span>Hann inte äta: {weeklyTotals.one}</span>
-              </li>
-              <li className="summary-item">
-                <span className="summary-dot summary-dot-three" />
-                <span>Ogillade maten: {weeklyTotals.three}</span>
-              </li>
-              <li className="summary-item">
-                <span className="summary-dot summary-dot-four" />
-                <span>Slängde inte: {weeklyTotals.four}</span>
+                <span>Hann inte äta (period): {rangeTotals.one}</span>
               </li>
               <li className="summary-item">
                 <span className="summary-dot summary-dot-two" />
-                <span>Tog för mycket: {weeklyTotals.two}</span>
+                <span>Tog för mycket (period): {rangeTotals.two}</span>
+              </li>
+              <li className="summary-item">
+                <span className="summary-dot summary-dot-three" />
+                <span>Ogillade maten (period): {rangeTotals.three}</span>
+              </li>
+              <li className="summary-item">
+                <span className="summary-dot summary-dot-four" />
+                <span>Slängde inte (period): {rangeTotals.four}</span>
               </li>
             </ul>
           </div>
 
           <div className="buttons-row">
-            <button className="refresh-btn" onClick={fetchClicks}>
+            <button className="refresh-btn" onClick={() => fetchClicks(daysToShow)}>
               Uppdatera
             </button>
           </div>
