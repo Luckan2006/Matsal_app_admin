@@ -38,6 +38,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Nytt: flikar (visas på mobil via CSS)
+  const [activeTab, setActiveTab] = useState("historik"); // "historik" | "graf"
+
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
   const todayLabel = today.toLocaleDateString("sv-SE");
@@ -59,6 +62,7 @@ function App() {
     setCountsToday(null);
     setRangeRows([]);
     setSelectedDay(null);
+    setActiveTab("historik");
   }
 
   function formatDay(dayStr) {
@@ -119,6 +123,7 @@ function App() {
   useEffect(() => {
     if (!session) return;
     fetchClicks(daysToShow);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, daysToShow]);
 
   const selectedRow = useMemo(() => {
@@ -195,8 +200,25 @@ function App() {
         Logga ut
       </button>
 
+      {/* Tabs: visas på mobil via CSS */}
+      <nav className="tabs">
+        <button
+          className={`tab-btn ${activeTab === "historik" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("historik")}
+        >
+          Historik
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "graf" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("graf")}
+        >
+          Graf &amp; summering
+        </button>
+      </nav>
+
       <div className="admin-main">
-        <div className="admin-left">
+        {/* Vänsterkolumn: Historik */}
+        <div className={`admin-left ${activeTab === "historik" ? "panel-show" : "panel-hide"}`}>
           <h1>Nuvarande totalsiffror för datum {todayLabel}</h1>
 
           <table>
@@ -224,7 +246,10 @@ function App() {
             <div className="range-controls">
               <label className="range-label">
                 Visa:
-                <select value={daysToShow} onChange={(e) => setDaysToShow(Number(e.target.value))}>
+                <select
+                  value={daysToShow}
+                  onChange={(e) => setDaysToShow(Number(e.target.value))}
+                >
                   <option value={7}>7 dagar</option>
                   <option value={14}>14 dagar</option>
                   <option value={30}>30 dagar</option>
@@ -264,7 +289,15 @@ function App() {
                     <tr
                       key={row.day}
                       className={isSelected ? "row-selected" : "row-clickable"}
-                      onClick={() => setSelectedDay(row.day)}
+                      onClick={() => {
+                        setSelectedDay(row.day);
+
+                        // Rekommenderat för mobil-flow:
+                        // välj dag -> hoppa till graf-fliken.
+                        setActiveTab("graf");
+
+                        // Om du INTE vill auto-hoppa, kommentera raden ovan.
+                      }}
                       title="Klicka för att visa graf för denna dag"
                     >
                       <td>{formatDay(row.day)}</td>
@@ -280,7 +313,8 @@ function App() {
           </div>
         </div>
 
-        <div className="admin-right">
+        {/* Högerkolumn: Graf + summering */}
+        <div className={`admin-right ${activeTab === "graf" ? "panel-show" : "panel-hide"}`}>
           <h2>
             Fördelning för vald dag{" "}
             <span className="selected-day-pill">
@@ -291,27 +325,29 @@ function App() {
           {pieData.length === 0 ? (
             <p>Ingen data att visa i grafen för vald dag.</p>
           ) : (
-            <div className="chart-wrapper">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="45%"
-                    outerRadius={75}
-                    label={renderPercentLabel}
-                    labelLine={false}
-                  >
-                    {pieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={48} />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="chart-card">
+              <div className="chart-wrapper">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                    <Pie
+                      data={pieData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="45%"
+                      outerRadius={70}
+                      label={renderPercentLabel}
+                      labelLine={false}
+                    >
+                      {pieData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={56} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           )}
 
