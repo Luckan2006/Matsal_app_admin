@@ -38,8 +38,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Nytt: flikar (visas på mobil via CSS)
-  const [activeTab, setActiveTab] = useState("historik"); // "historik" | "graf"
+  const [activeTab, setActiveTab] = useState("historik");
 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
@@ -123,7 +122,6 @@ function App() {
   useEffect(() => {
     if (!session) return;
     fetchClicks(daysToShow);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, daysToShow]);
 
   const selectedRow = useMemo(() => {
@@ -291,12 +289,7 @@ function App() {
                       className={isSelected ? "row-selected" : "row-clickable"}
                       onClick={() => {
                         setSelectedDay(row.day);
-
-                        // Rekommenderat för mobil-flow:
-                        // välj dag -> hoppa till graf-fliken.
                         setActiveTab("graf");
-
-                        // Om du INTE vill auto-hoppa, kommentera raden ovan.
                       }}
                       title="Klicka för att visa graf för denna dag"
                     >
@@ -312,8 +305,6 @@ function App() {
             </table>
           </div>
         </div>
-
-        {/* Högerkolumn: Graf + summering */}
         <div className={`admin-right ${activeTab === "graf" ? "panel-show" : "panel-hide"}`}>
           <h2>
             Fördelning för vald dag{" "}
