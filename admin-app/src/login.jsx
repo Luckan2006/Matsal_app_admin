@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "./supabaseClient";
 import "./login.css";
 
-export default function Login() {
+export default function Login({ externalError }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -10,21 +10,17 @@ export default function Login() {
   const [error, setError] = useState(null);
 
   async function handleLogin(e) {
-  e.preventDefault();
-  setError(null);
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error) {
-    console.error(error);       
-    setError(error.message);     
-    return;
+    if (error) setError(error.message);
   }
-}
-
 
   async function handleRegister(e) {
     e.preventDefault();
@@ -37,7 +33,6 @@ export default function Login() {
     });
 
     if (error) {
-      console.error(error);
       setError("Kunde inte skapa konto");
       return;
     }
@@ -50,7 +45,7 @@ export default function Login() {
     }
 
     setInfo(
-      "Konto skapat! En administratör måste godkänna dig i Supabase innan du får åtkomst."
+      "Konto skapat! En administratör måste godkänna dig innan du kan logga in."
     );
   }
 
@@ -104,6 +99,7 @@ export default function Login() {
           </button>
         </form>
 
+        {externalError && <p className="error">{externalError}</p>}
         {error && <p className="error">{error}</p>}
         {info && <p className="info">{info}</p>}
       </div>

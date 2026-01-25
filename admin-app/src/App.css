@@ -323,6 +323,9 @@ button:active {
   background: #ff7f7f;
 }
 
+/* =========================
+   MOBILE – CLEAN & USABLE
+   ========================= */
 
 @media (max-width: 900px) {
   html,
@@ -330,54 +333,77 @@ button:active {
     overflow: auto;
   }
 
+  /* Wrapper */
   .admin {
-    padding: 1rem;
     height: auto;
     min-height: 100vh;
+    padding: 0.75rem;
   }
 
+  /* Logga ut – fast uppe till höger */
+  .logout-btn {
+    position: fixed;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 20;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  /* Tabs */
   .tabs {
     display: flex;
+    margin-top: 2.2rem; /* plats för logout */
+    margin-bottom: 0.75rem;
   }
 
-  .admin h1 {
-    font-size: 1.7rem;
-  }
-
+  /* Allt i en kolumn */
   .admin-main {
     flex-direction: column;
-    margin-top: 1rem;
+    gap: 1rem;
+    margin-top: 0;
     overflow: visible;
   }
 
+  .admin-left,
   .admin-right {
     width: 100%;
+    min-width: 0;
+    height: auto;
     overflow: visible;
-    padding-right: 0;
+    padding: 0;
   }
 
+  /* Visa allt (tabs styr bara fokus visuellt) */
+  .panel-show,
   .panel-hide {
-    display: none;
-  }
-  .panel-show {
     display: block;
   }
 
-  .logout-btn {
-    position: static;
-    align-self: flex-end;
-    margin-bottom: 0.5rem;
+  /* Rubriker */
+  .admin h1 {
+    font-size: 1.45rem;
+    line-height: 1.25;
   }
+
+  .admin-left h2,
+  .admin-right h2,
+  .admin-right h3 {
+    font-size: 1.05rem;
+  }
+
+  /* ===== RANGE CONTROLS ===== */
 
   .range-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.5rem;
   }
 
   .range-controls {
-    width: 100%;
-    justify-content: space-between;
-    gap: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 
   .range-label {
@@ -386,58 +412,59 @@ button:active {
   }
 
   select {
-    width: 60%;
+    width: 100%;
+    font-size: 0.9rem;
   }
 
   .refresh-btn {
-    width: 40%;
+    width: 100%;
+    padding: 0.55rem;
+    font-size: 0.9rem;
   }
 
-  .chart-wrapper {
-    height: 280px;
-  }
+  /* ===== TABELL ===== */
 
   table {
-    font-size: 0.9rem;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.82rem;
+  }
+
+  th,
+  td {
+    padding: 0.45rem 0.3rem;
+    word-break: break-word;
+  }
+
+  th {
+    font-size: 0.75rem;
   }
 
   .table-scroll {
     overflow: visible;
   }
+
+  /* ===== GRAF ===== */
+
+  .chart-wrapper {
+    height: 240px;
+  }
+
+  /* ===== SUMMERING ===== */
+
+  .week-summary-box {
+    padding: 0.75rem;
+  }
 }
 
-@media (max-width: 600px) {
-  .admin h1 {
-    font-size: 1.4rem;
-  }
-
+@media (max-width: 480px) {
   table {
-    font-size: 0.85rem;
-  }
-
-  .table-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  table {
-    min-width: 560px;
-  }
-
-  .range-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  select {
-    width: 100%;
-  }
-
-  .refresh-btn {
-    width: 100%;
+    font-size: 0.78rem;
   }
 
   .chart-wrapper {
-    height: 300px;
+    height: 220px;
   }
 }
+
+

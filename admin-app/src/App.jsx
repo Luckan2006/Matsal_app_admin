@@ -2,12 +2,26 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabaseClient";
 import Login from "./Login";
 import "./app.css";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f7f"];
 const RADIAN = Math.PI / 180;
 
-const renderPercentLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+const renderPercentLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+}) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -27,8 +41,12 @@ const renderPercentLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percen
 };
 
 function App() {
+  // 🔐 AUTH STATE
   const [session, setSession] = useState(null);
+  const [checkingApproval, setCheckingApproval] = useState(true);
+  const [authError, setAuthError] = useState(null);
 
+  // 📊 DATA STATE
   const [countsToday, setCountsToday] = useState(null);
   const [rangeRows, setRangeRows] = useState([]);
 
@@ -44,16 +62,58 @@ function App() {
   const todayStr = today.toISOString().slice(0, 10);
   const todayLabel = today.toLocaleDateString("sv-SE");
 
+  // 🔐 ENDA auth + approval-kollen (VIKTIGASTE DELEN)
   useEffect(() => {
+    let mounted = true;
+
+    async function handleSession(session) {
+      if (!session?.user) {
+        if (mounted) {
+          setSession(null);
+          setCheckingApproval(false);
+        }
+        return;
+      }
+
+      setCheckingApproval(true);
+      setAuthError(null);
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("approved")
+        .eq("id", session.user.id)
+        .single();
+
+      if (error || !profile?.approved) {
+        await supabase.auth.signOut();
+        if (mounted) {
+          setSession(null);
+          setAuthError("Ditt konto är inte godkänt ännu.");
+          setCheckingApproval(false);
+        }
+        return;
+      }
+
+      if (mounted) {
+        setSession(session);
+        setCheckingApproval(false);
+      }
+    }
+
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+      handleSession(data.session);
     });
 
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        handleSession(session);
+      }
+    );
 
-    return () => data.subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   async function logout() {
@@ -107,13 +167,10 @@ function App() {
 
     if (!selectedDay) {
       const fallback =
-        rows.find((r) => r.day === todayStr)?.day ?? rows[rows.length - 1]?.day ?? null;
+        rows.find((r) => r.day === todayStr)?.day ??
+        rows[rows.length - 1]?.day ??
+        null;
       setSelectedDay(fallback);
-    } else {
-      const stillExists = rows.some((r) => r.day === selectedDay);
-      if (!stillExists) {
-        setSelectedDay(rows[rows.length - 1]?.day ?? null);
-      }
     }
 
     setLoading(false);
@@ -152,7 +209,10 @@ function App() {
   }, [rangeRows]);
 
   const selectedTotal =
-    selectedCounts.one + selectedCounts.two + selectedCounts.three + selectedCounts.four;
+    selectedCounts.one +
+    selectedCounts.two +
+    selectedCounts.three +
+    selectedCounts.four;
 
   const pieData = useMemo(() => {
     return [
@@ -164,14 +224,24 @@ function App() {
   }, [selectedCounts]);
 
   const rangeTotal =
-    rangeTotals.one + rangeTotals.two + rangeTotals.three + rangeTotals.four;
+    rangeTotals.one +
+    rangeTotals.two +
+    rangeTotals.three +
+    rangeTotals.four;
 
   const showPeriodBlock = rangeTotal !== selectedTotal;
 
-  if (!session) return <Login />;
+  // 🔁 RENDER LOGIK (SUPER VIKTIG)
+  if (checkingApproval) {
+    return <h1 style={{ padding: "2rem" }}>Verifierar konto…</h1>;
+  }
+
+  if (!session) {
+    return <Login externalError={authError} />;
+  }
 
   if (loading) {
-    return <h1 style={{ padding: "2rem" }}>Laddar...</h1>;
+    return <h1 style={{ padding: "2rem" }}>Laddar…</h1>;
   }
 
   if (error) {
@@ -192,16 +262,19 @@ function App() {
     );
   }
 
+  // ✅ ADMIN UI
   return (
     <div className="admin">
       <button className="logout-btn" onClick={logout}>
         Logga ut
       </button>
 
-      {/* Tabs: visas på mobil via CSS */}
+      {/* Tabs */}
       <nav className="tabs">
         <button
-          className={`tab-btn ${activeTab === "historik" ? "tab-active" : ""}`}
+          className={`tab-btn ${
+            activeTab === "historik" ? "tab-active" : ""
+          }`}
           onClick={() => setActiveTab("historik")}
         >
           Historik
