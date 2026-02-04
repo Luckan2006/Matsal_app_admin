@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabaseClient";
 import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import Login from "./Login";
 import "./app.css";
 import {
@@ -41,6 +42,60 @@ const renderPercentLabel = ({
   );
 };
 
+const DailyPieChartForPDF = ({ day, data, id }) => {
+  const pieData = [
+    { name: "Hann inte äta", value: data.one || 0 },
+    { name: "Tog för mycket", value: data.two || 0 },
+    { name: "Ogillade maten", value: data.three || 0 },
+    { name: "Slängde inte", value: data.four || 0 },
+  ].filter((item) => item.value > 0);
+
+  if (pieData.length === 0) return null;
+
+  return (
+    <div
+      id={id}
+      style={{
+        width: "340px",
+        height: "380px",
+        background: "#ffffff",
+        padding: "16px",
+        boxSizing: "border-box",
+        fontFamily: "Helvetica, Arial, sans-serif",
+      }}
+    >
+      <h4 style={{ margin: "0 0 12px 0", textAlign: "center", fontSize: "14px" }}>
+        {day}
+      </h4>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={pieData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={90}
+            label={renderPercentLabel}
+            labelLine={false}
+          >
+            {pieData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip />
+          <Legend
+            verticalAlign="bottom"
+            height={60}
+            iconSize={12}
+            wrapperStyle={{ fontSize: "11px" }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
 function App() {
   const [session, setSession] = useState(null);
   const [checkingApproval, setCheckingApproval] = useState(true);
@@ -64,39 +119,64 @@ function App() {
   const todayStr = today.toISOString().slice(0, 10);
   const todayLabel = today.toLocaleDateString("sv-SE");
 
-  const generatePDF = (dataArray, pdfName) => {
+  const generatePDF = async (dataArray, pdfName) => {
     const doc = new jsPDF();
-    const itemsPerPage = 4;
-    let pageIndex = 0;
+    const itemsPerPage = 2;
 
-    for (let i = 0; i < dataArray.length; i += itemsPerPage) {
-      const pageData = dataArray.slice(i, i + itemsPerPage);
+    for (let i = 0; i < dataArray.length; i++) {
+      const data = dataArray[i];
+      const day = data.day;
+      const chartId = `pdf-pie-${day.replace(/-/g, "")}`;
 
-      if (pageIndex > 0) {
+      if (i % itemsPerPage === 0 && i > 0) {
         doc.addPage();
       }
 
-      pageData.forEach((data, index) => {
-        const { one, two, three, four, day } = data;
-        const ypos = 10 + index * 60;
-        doc.text("Statistik för " + day, 10, ypos);
-        doc.text(`Hann inte äta: ${one}`, 10, ypos + 10);
-        doc.text(`Tog för mycket: ${two}`, 10, ypos + 20);
-        doc.text(`Ogillade maten: ${three}`, 10, ypos + 30);
-        doc.text(`Slängde inte: ${four}`, 10, ypos + 40);
-      });
-      pageIndex++;
+      const yStart = 60 + (i % itemsPerPage) * 145;
+
+      doc.setFontSize(12);
+      doc.text(`Statistik för ${day}`, 15, yStart);
+
+      doc.setFontSize(10);
+      const total = (data.one || 0) + (data.two || 0) + (data.three || 0) + (data.four || 0);
+      const pct = (value) => total > 0 ? ((value / total) * 100).toFixed(0) + "%" : "0%";
+      doc.text(`Hann inte äta: ${data.one || 0} (${pct(data.one || 0)})`, 20, yStart + 10);
+      doc.text(`Tog för mycket: ${data.two || 0} (${pct(data.two || 0)})`, 20, yStart + 18);
+      doc.text(`Ogillade maten: ${data.three || 0} (${pct(data.three || 0)})`, 20, yStart + 26);
+      doc.text(`Slängde inte: ${data.four || 0} (${pct(data.four || 0)})`, 20, yStart + 34);
+      const chartElement = document.getElementById(chartId);
+      if (chartElement) {
+        try {
+          const canvas = await html2canvas(chartElement, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+          });
+          const imgData = canvas.toDataURL("image/png");
+          const imgWidth = 90;
+          const imgHeight = 100;
+          doc.addImage(imgData, "PNG", 105, yStart - 10, imgWidth, imgHeight);
+        } catch (err) {
+          console.error("Chart capture failed for", day, err);
+          doc.setFontSize(10);
+          doc.text("[Graf kunde inte skapas]", 105, yStart + 30);
+        }
+      } else {
+        doc.setFontSize(10);
+        doc.text("[Graf ej tillgänglig]", 105, yStart + 30);
+      }
     }
-    doc.save(`${pdfName.trim() || "statistik"}.pdf`);
+
+    const fileName = pdfName.trim() || `statistik-${daysToShow}dagar`;
+    doc.save(`${fileName}.pdf`);
   };
 
   const handleDownloadData = () => {
-    // Take the most recent N days (already sorted newest first after fetch)
     const data = rangeRows.slice(0, daysToShow);
 
     console.log("Days to show:", daysToShow);
     console.log("Data length for PDF:", data.length);
-    console.log("Days included in PDF:", data.map(d => d.day));
+    console.log("Days in PDF:", data.map(d => d.day));
 
     generatePDF(data, pdfName);
   };
@@ -205,8 +285,6 @@ function App() {
       return;
     }
 
-    // We keep newest first (no reverse) so PDF gets newest → oldest
-    // But your table shows oldest first, so we reverse only for display
     const rowsForDisplay = (data || []).slice().reverse(); // oldest → newest for table
     setRangeRows(rowsForDisplay);
 
@@ -320,6 +398,18 @@ function App() {
 
   return (
     <div className="admin">
+      {/* Hidden charts for PDF */}
+      <div style={{ position: "absolute", left: "-9999px", top: "-9999px", zIndex: -1000 }}>
+        {rangeRows.map((row) => (
+          <DailyPieChartForPDF
+            key={row.day}
+            day={row.day}
+            data={row}
+            id={`pdf-pie-${row.day.replace(/-/g, "")}`}
+          />
+        ))}
+      </div>
+
       <button className="logout-btn" onClick={logout}>
         Logga ut
       </button>
