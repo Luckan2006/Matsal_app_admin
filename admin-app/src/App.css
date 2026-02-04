@@ -323,9 +323,77 @@ button:active {
   background: #ff7f7f;
 }
 
-/* =========================
-   MOBILE – CLEAN & USABLE
-   ========================= */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  width: 300px;
+}
+
+button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #ddd;
+}
+
+.download-btn {
+  background-color: darkgray;
+  color: white;
+  max-width: 200px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin: 1rem 0;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.download-btn:hover {
+  background-color: #ddd;
+}
+
+.pdf-input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  color: #aaa;
+  transition: color 0.3s ease;
+}
+
+.pdf-input:focus {
+  color: #000;
+  border-color: #007bff;
+}
+
+.pdf-input:valid {
+  color: #000;
+}
+
+.pdf-input::placeholder {
+  color: #aaa;
+}
 
 @media (max-width: 900px) {
   html,
@@ -333,14 +401,12 @@ button:active {
     overflow: auto;
   }
 
-  /* Wrapper */
   .admin {
     height: auto;
     min-height: 100vh;
     padding: 0.75rem;
   }
 
-  /* Logga ut – fast uppe till höger */
   .logout-btn {
     position: fixed;
     top: 0.6rem;
@@ -350,14 +416,12 @@ button:active {
     font-size: 0.85rem;
   }
 
-  /* Tabs */
   .tabs {
     display: flex;
-    margin-top: 2.2rem; /* plats för logout */
+    margin-top: 2.2rem;
     margin-bottom: 0.75rem;
   }
 
-  /* Allt i en kolumn */
   .admin-main {
     flex-direction: column;
     gap: 1rem;
@@ -374,13 +438,11 @@ button:active {
     padding: 0;
   }
 
-  /* Visa allt (tabs styr bara fokus visuellt) */
   .panel-show,
   .panel-hide {
     display: block;
   }
 
-  /* Rubriker */
   .admin h1 {
     font-size: 1.45rem;
     line-height: 1.25;
@@ -391,8 +453,6 @@ button:active {
   .admin-right h3 {
     font-size: 1.05rem;
   }
-
-  /* ===== RANGE CONTROLS ===== */
 
   .range-header {
     flex-direction: column;
@@ -422,8 +482,6 @@ button:active {
     font-size: 0.9rem;
   }
 
-  /* ===== TABELL ===== */
-
   table {
     width: 100%;
     table-layout: fixed;
@@ -444,13 +502,9 @@ button:active {
     overflow: visible;
   }
 
-  /* ===== GRAF ===== */
-
   .chart-wrapper {
     height: 240px;
   }
-
-  /* ===== SUMMERING ===== */
 
   .week-summary-box {
     padding: 0.75rem;
