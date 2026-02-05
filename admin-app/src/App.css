@@ -4,15 +4,13 @@ body {
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* ingen scroll på desktop */
+  overflow: hidden;
 }
 
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #e0e0e0;
 }
-
-/* --- Admin-wrapper --- */
 
 .admin {
   height: 100vh;
@@ -25,7 +23,6 @@ body {
   flex-direction: column;
 }
 
-/* Logga ut-knappen uppe i hörnet */
 .logout-btn {
   position: absolute;
   top: 0.75rem;
@@ -33,9 +30,8 @@ body {
   border-radius: 0.75rem;
 }
 
-/* --- Tabs (mobil) --- */
 .tabs {
-  display: none; /* visas via media query */
+  display: none;
   gap: 0.5rem;
   margin-top: 0.75rem;
 }
@@ -65,7 +61,6 @@ body {
   border-color: #bdbdff;
 }
 
-/* Panel-visning (desktop: båda syns) */
 .panel-show {
   display: block;
 }
@@ -73,7 +68,6 @@ body {
   display: block;
 }
 
-/* Huvudlayout: vänster (tabeller) + höger (graf) */
 .admin-main {
   flex: 1;
   display: flex;
@@ -103,12 +97,11 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: auto; /* om höjden blir tight: scrolla högerkolumnen */
+  overflow: auto;
   padding-right: 0.25rem;
   gap: 1rem;
 }
 
-/* Rubriker */
 .admin h1 {
   margin: 0;
   font-size: 2.1rem;
@@ -121,7 +114,6 @@ body {
   font-size: 1.2rem;
 }
 
-/* Tabeller */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -143,7 +135,6 @@ th {
   font-weight: 600;
 }
 
-/* Klickbara rader */
 .row-clickable {
   cursor: pointer;
 }
@@ -157,7 +148,6 @@ th {
   font-weight: 700;
 }
 
-/* Header med dropdown */
 .range-header {
   display: flex;
   align-items: center;
@@ -170,6 +160,7 @@ th {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .range-label {
@@ -177,17 +168,38 @@ th {
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-select {
-  padding: 0.45rem 0.6rem;
+select,
+.refresh-btn {
+  height: 2.125rem;         
+  padding: 0 0.75rem;
+  font-size: 0.95rem;
   border-radius: 0.5rem;
   border: 1px solid #cfcfcf;
   background: white;
   font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+  line-height: 1;
 }
 
-/* Scroll-container för historik-tabellen */
+select {
+  min-width: 130px;
+}
+
+.refresh-btn {
+  background: #f8f8f8;
+  color: #333;
+  min-width: 110px;
+  border: 1px solid #cfcfcf;
+}
+
+.refresh-btn:hover {
+  background: #e8e8e8;
+}
+
 .table-scroll {
   flex: 1;
   min-height: 0;
@@ -195,7 +207,6 @@ select {
   border-radius: 0.6rem;
 }
 
-/* Knappar generellt */
 button {
   background: #b0b0b0;
   color: #000;
@@ -216,21 +227,12 @@ button:active {
   transform: scale(0.97);
 }
 
-/* Uppdatera-knappen */
 .buttons-row {
   margin-top: 0.75rem;
   display: flex;
   gap: 0.75rem;
   justify-content: flex-start;
 }
-
-.refresh-btn {
-  background: #b0b0b0;
-  color: #000;
-  border-radius: 0.5rem;
-  padding: 0.55rem 1.25rem;
-}
-
 
 .chart-card {
   background: #fff;
@@ -271,7 +273,6 @@ button:active {
   margin-bottom: 0.2rem;
 }
 
-
 .summary-block {
   display: flex;
   flex-direction: column;
@@ -293,7 +294,6 @@ button:active {
   padding-left: 0;
   margin: 0;
 }
-
 
 .summary-item {
   display: flex;
@@ -344,18 +344,6 @@ button:active {
   width: 300px;
 }
 
-button {
-  margin-top: 1rem;
-  padding: 0.75rem 1.25rem;
-  font-size: 1rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #ddd;
-}
-
 .download-btn {
   background-color: darkgray;
   color: white;
@@ -364,7 +352,6 @@ button:hover {
   font-size: 1rem;
   border-radius: 0.5rem;
   cursor: pointer;
-  margin: 1rem 0;
   border: none;
   transition: background-color 0.2s ease;
 }
@@ -438,22 +425,6 @@ button:hover {
     padding: 0;
   }
 
-  .panel-show,
-  .panel-hide {
-    display: block;
-  }
-
-  .admin h1 {
-    font-size: 1.45rem;
-    line-height: 1.25;
-  }
-
-  .admin-left h2,
-  .admin-right h2,
-  .admin-right h3 {
-    font-size: 1.05rem;
-  }
-
   .range-header {
     flex-direction: column;
     align-items: stretch;
@@ -461,25 +432,19 @@ button:hover {
   }
 
   .range-controls {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.6rem;
   }
 
   .range-label {
     width: 100%;
-    justify-content: space-between;
   }
 
-  select {
-    width: 100%;
-    font-size: 0.9rem;
-  }
-
+  select,
   .refresh-btn {
-    width: 100%;
-    padding: 0.55rem;
-    font-size: 0.9rem;
+    flex: 1 1 auto;
+    min-width: 140px;
   }
 
   table {
@@ -496,10 +461,6 @@ button:hover {
 
   th {
     font-size: 0.75rem;
-  }
-
-  .table-scroll {
-    overflow: visible;
   }
 
   .chart-wrapper {
@@ -519,6 +480,10 @@ button:hover {
   .chart-wrapper {
     height: 220px;
   }
+
+  select,
+  .refresh-btn {
+    font-size: 0.9rem;
+    padding: 0 0.6rem;
+  }
 }
-
-

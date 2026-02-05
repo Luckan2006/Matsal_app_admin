@@ -285,8 +285,7 @@ function App() {
       return;
     }
 
-    const rowsForDisplay = (data || []).slice().reverse(); // oldest → newest for table
-    setRangeRows(rowsForDisplay);
+    const rowsForDisplay = (data || []).slice().reverse();
 
     const todayRow = rowsForDisplay.find((r) => r.day === todayStr);
     if (todayRow) {
@@ -398,7 +397,6 @@ function App() {
 
   return (
     <div className="admin">
-      {/* Hidden charts for PDF */}
       <div style={{ position: "absolute", left: "-9999px", top: "-9999px", zIndex: -1000 }}>
         {rangeRows.map((row) => (
           <DailyPieChartForPDF
