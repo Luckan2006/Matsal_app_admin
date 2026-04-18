@@ -549,9 +549,7 @@ button:active {
 .menu-item-desc {
   font-size: 0.85rem;
   color: #444;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .menu-save-btn {
@@ -573,6 +571,7 @@ button:active {
 
 .menu-manual {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.6rem;
   align-items: center;
@@ -580,6 +579,7 @@ button:active {
 
 .menu-manual-input {
   flex: 1;
+  min-width: 140px;
   padding: 0.35rem 0.6rem;
   border: 1px solid #ccc;
   border-radius: 0.4rem;
@@ -588,10 +588,33 @@ button:active {
 }
 
 .food-cell {
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: #555;
   font-style: italic;
+  word-break: break-word;
+}
+
+.menu-note {
+  font-size: 0.82rem;
+  color: #666;
+  margin: 0 0 0.5rem 0;
+}
+
+.menu-item {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.menu-item-save {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.menu-date-input {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+  font-size: 0.82rem;
+  font-family: inherit;
 }

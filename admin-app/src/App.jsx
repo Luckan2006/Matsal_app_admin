@@ -124,6 +124,7 @@ function App() {
   const [menuError, setMenuError] = useState(null);
   const [savingFood, setSavingFood] = useState({});
   const [manualFood, setManualFood] = useState("");
+  const [menuSaveDate, setMenuSaveDate] = useState("");
 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
@@ -183,12 +184,22 @@ function App() {
       doc.setTextColor(80, 80, 160);
       doc.text(`Totalt: ${total} svar`, pageW / 2, 53, { align: "center" });
 
+      // Food / menu text
+      let chartY = 62;
+      if (data.food) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(80, 80, 80);
+        const foodLines = doc.splitTextToSize(`Meny: ${data.food}`, pageW - 30);
+        doc.text(foodLines, pageW / 2, chartY, { align: "center" });
+        chartY += foodLines.length * 5 + 4;
+      }
+
       // Chart
       const chartElement = document.getElementById(chartId);
       const chartWidth = 140;
       const chartHeight = 130;
       const chartX = (pageW - chartWidth) / 2;
-      const chartY = 60;
 
       if (chartElement) {
         try {
@@ -609,10 +620,13 @@ function App() {
           </table>
 
           <div className="menu-section">
-            <h2>Dagens meny (Skolmaten)</h2>
+            <h2>Meny (Skolmaten)</h2>
+            <p className="menu-note">
+              Skolmaten visar alltid <strong>dagens</strong> meny. Välj vilket datum du vill spara den till.
+            </p>
             {menuError && <p className="menu-error">{menuError}</p>}
             {!menuError && schoolMenu.length === 0 && (
-              <p className="menu-empty">Ingen meny hittades för idag (helgdag eller lov).</p>
+              <p className="menu-empty">Ingen meny från Skolmaten idag (helgdag eller lov). Ange meny manuellt nedan.</p>
             )}
             {schoolMenu.length > 0 && (
               <div className="menu-list">
@@ -622,38 +636,52 @@ function App() {
                       <span className="menu-item-title">{item.title}</span>
                       <span className="menu-item-desc">{item.description}</span>
                     </div>
-                    <button
-                      className="menu-save-btn"
-                      disabled={savingFood[item.date || todayStr]}
-                      onClick={() => saveFoodForDay(item.date || todayStr, item.description)}
-                    >
-                      {savingFood[item.date || todayStr] ? "Sparar…" : "Spara för idag"}
-                    </button>
+                    <div className="menu-item-save">
+                      <input
+                        type="date"
+                        className="menu-date-input"
+                        value={menuSaveDate || todayStr}
+                        onChange={(e) => setMenuSaveDate(e.target.value)}
+                      />
+                      <button
+                        className="menu-save-btn"
+                        disabled={savingFood[menuSaveDate || todayStr]}
+                        onClick={() => saveFoodForDay(menuSaveDate || todayStr, item.description)}
+                      >
+                        {savingFood[menuSaveDate || todayStr] ? "Sparar…" : "Spara"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
             <div className="menu-manual">
               <input
+                type="date"
+                className="menu-date-input"
+                value={menuSaveDate || todayStr}
+                onChange={(e) => setMenuSaveDate(e.target.value)}
+              />
+              <input
                 type="text"
                 className="menu-manual-input"
-                placeholder="Ange meny manuellt för idag…"
+                placeholder="Ange meny manuellt…"
                 value={manualFood}
                 onChange={(e) => setManualFood(e.target.value)}
               />
               <button
                 className="menu-save-btn"
-                disabled={!manualFood.trim() || savingFood[todayStr]}
+                disabled={!manualFood.trim() || savingFood[menuSaveDate || todayStr]}
                 onClick={() => {
-                  saveFoodForDay(todayStr, manualFood.trim());
+                  saveFoodForDay(menuSaveDate || todayStr, manualFood.trim());
                   setManualFood("");
                 }}
               >
-                {savingFood[todayStr] ? "Sparar…" : "Spara manuellt"}
+                {savingFood[menuSaveDate || todayStr] ? "Sparar…" : "Spara"}
               </button>
             </div>
             <button className="refresh-btn" onClick={fetchSchoolMenu} style={{ marginTop: "0.5rem" }}>
-              Uppdatera från Skolmaten
+              Hämta från Skolmaten
             </button>
           </div>
 
