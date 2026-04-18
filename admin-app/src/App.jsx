@@ -75,6 +75,7 @@ const DailyPieChartForPDF = ({ day, data, id }) => {
             outerRadius={180}
             label={renderPercentLabel}
             labelLine={false}
+            isAnimationActive={false}
           >
             {pieData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -119,6 +120,7 @@ function App() {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [pdfName, setPdfName] = useState("");
+  const [isContactOpen, setIsContactOpen] = useState(false);
 
   const [schoolMenu, setSchoolMenu] = useState([]);
   const [menuError, setMenuError] = useState(null);
@@ -154,45 +156,45 @@ function App() {
 
       // Header bar
       doc.setFillColor(80, 80, 160);
-      doc.rect(0, 0, pageW, 22, "F");
+      doc.rect(0, 0, pageW, 24, "F");
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16);
+      doc.setFontSize(20);
       doc.setFont("helvetica", "bold");
-      doc.text("Matsal Statistik", pageW / 2, 14, { align: "center" });
+      doc.text("Matsal Statistik", pageW / 2, 16, { align: "center" });
 
       // Date
       doc.setTextColor(30, 30, 30);
-      doc.setFontSize(18);
+      doc.setFontSize(22);
       const formattedDay = new Date(day).toLocaleDateString("sv-SE", {
         weekday: "long",
         day: "numeric",
         month: "long",
         year: "numeric",
       });
-      doc.text(formattedDay, pageW / 2, 36, { align: "center" });
+      doc.text(formattedDay, pageW / 2, 38, { align: "center" });
 
       // Divider
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.5);
-      doc.line(15, 42, pageW - 15, 42);
+      doc.line(15, 44, pageW - 15, 44);
 
       // Total pill
       doc.setFillColor(240, 240, 255);
-      doc.roundedRect(pageW / 2 - 35, 46, 70, 10, 2, 2, "F");
-      doc.setFontSize(11);
+      doc.roundedRect(pageW / 2 - 40, 48, 80, 12, 2, 2, "F");
+      doc.setFontSize(13);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(80, 80, 160);
-      doc.text(`Totalt: ${total} svar`, pageW / 2, 53, { align: "center" });
+      doc.text(`Totalt: ${total} svar`, pageW / 2, 56, { align: "center" });
 
       // Food / menu text
-      let chartY = 62;
+      let chartY = 66;
       if (data.food) {
-        doc.setFontSize(10);
+        doc.setFontSize(14);
         doc.setFont("helvetica", "italic");
-        doc.setTextColor(80, 80, 80);
+        doc.setTextColor(60, 60, 60);
         const foodLines = doc.splitTextToSize(`Meny: ${data.food}`, pageW - 30);
         doc.text(foodLines, pageW / 2, chartY, { align: "center" });
-        chartY += foodLines.length * 5 + 4;
+        chartY += foodLines.length * 7 + 4;
       }
 
       // Chart
@@ -223,36 +225,36 @@ function App() {
 
       // Stats section
       const statsY = chartY + chartHeight + 8;
-      doc.setFontSize(11);
+      doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(50, 50, 50);
       doc.text("Fördelning av svar:", 15, statsY);
 
       statKeys.forEach((key, idx) => {
         const value = data[key] || 0;
-        const rowY = statsY + 8 + idx * 16;
+        const rowY = statsY + 10 + idx * 20;
         const [r, g, b] = statColors[idx];
 
         // Row background
         doc.setFillColor(248, 248, 255);
-        doc.roundedRect(15, rowY - 4, pageW - 30, 12, 1.5, 1.5, "F");
+        doc.roundedRect(15, rowY - 5, pageW - 30, 15, 1.5, 1.5, "F");
 
         // Colored left accent bar
         doc.setFillColor(r, g, b);
-        doc.rect(15, rowY - 4, 3.5, 12, "F");
+        doc.rect(15, rowY - 5, 4, 15, "F");
 
         // Label
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
+        doc.setFontSize(12);
         doc.setTextColor(50, 50, 50);
-        doc.text(statLabels[idx], 22, rowY + 4);
+        doc.text(statLabels[idx], 23, rowY + 5);
 
         // Value badge
         doc.setFillColor(r, g, b);
-        doc.roundedRect(pageW - 48, rowY - 2, 33, 8, 2, 2, "F");
+        doc.roundedRect(pageW - 54, rowY - 3, 39, 11, 2, 2, "F");
         doc.setFont("helvetica", "bold");
         doc.setTextColor(255, 255, 255);
-        doc.text(`${value}  (${pct(value)})`, pageW - 31.5, rowY + 4, { align: "center" });
+        doc.text(`${value}  (${pct(value)})`, pageW - 34.5, rowY + 5, { align: "center" });
       });
     }
 
@@ -551,6 +553,10 @@ function App() {
 
       <button className="download-btn" onClick={handleOpenPopup}>
         Ladda ner data
+      </button>
+
+      <button className="contact-btn" onClick={() => setIsContactOpen(true)}>
+        Kontakt
       </button>
 
       {isPopupOpen && (
@@ -853,6 +859,26 @@ function App() {
           </div>
         </div>
       </div>
+
+      {isContactOpen && (
+        <div className="popup" onClick={() => setIsContactOpen(false)}>
+          <div className="popup-content contact-popup" onClick={(e) => e.stopPropagation()}>
+            <h2>Kontaktinformation</h2>
+            <div className="contact-info">
+              <p><strong>Skola:</strong> Sven Eriksonsgymnasiet</p>
+              <p><strong>E-post:</strong> —</p>
+              <p><strong>Telefon:</strong> —</p>
+              <p><strong>Adress:</strong> —</p>
+            </div>
+            <button onClick={() => setIsContactOpen(false)}>Stäng</button>
+          </div>
+        </div>
+      )}
+
+      <footer className="site-footer">
+        <span>© {new Date().getFullYear()} Matsal Statistik – Sven Eriksonsgymnasiet. Alla rättigheter förbehållna.</span>
+        <button className="footer-contact-btn" onClick={() => setIsContactOpen(true)}>Kontakt</button>
+      </footer>
     </div>
   );
 }
