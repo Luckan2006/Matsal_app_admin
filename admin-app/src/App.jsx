@@ -358,33 +358,10 @@ function App() {
   async function fetchSchoolMenu() {
     setMenuError(null);
     setSchoolMenu([]);
-    // The RSS feed returns the current day's menu.
-    // If it shows "Ingen meny för idag" it means no school food today (e.g. weekends).
-    const rssUrl = "https://skolmaten.se/sven-eriksonsgymnasiet";
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
-
     try {
-      const res = await fetch(proxyUrl);
-      if (!res.ok) throw new Error("proxy_error");
-      const json = await res.json();
-      const xml = new DOMParser().parseFromString(json.contents, "text/xml");
-
-      if (xml.querySelector("parsererror")) throw new Error("not_rss");
-
-      const items = Array.from(xml.querySelectorAll("item")).map((item) => {
-        const rawDate = item.querySelector("pubDate")?.textContent || "";
-        const parsedDate = rawDate ? new Date(rawDate) : null;
-        const dateStr = parsedDate && !isNaN(parsedDate)
-          ? parsedDate.toISOString().slice(0, 10)
-          : todayStr;
-        return {
-          title: item.querySelector("title")?.textContent || "",
-          description: item.querySelector("description")?.textContent || "",
-          date: dateStr,
-        };
-      }).filter((item) => item.description && item.description !== "Ingen meny för idag");
-
-      setSchoolMenu(items);
+      const { data, error } = await supabase.functions.invoke("skolmaten-menu");
+      if (error) throw error;
+      setSchoolMenu(data?.items ?? []);
     } catch {
       setMenuError("Kunde inte hämta menyn från Skolmaten.");
     }
