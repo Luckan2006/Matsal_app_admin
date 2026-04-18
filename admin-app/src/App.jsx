@@ -56,17 +56,14 @@ const DailyPieChartForPDF = ({ day, data, id }) => {
     <div
       id={id}
       style={{
-        width: "340px",
-        height: "380px",
+        width: "600px",
+        height: "560px",
         background: "#ffffff",
         padding: "16px",
         boxSizing: "border-box",
         fontFamily: "Helvetica, Arial, sans-serif",
       }}
     >
-      <h4 style={{ margin: "0 0 12px 0", textAlign: "center", fontSize: "14px" }}>
-        {day}
-      </h4>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -75,7 +72,7 @@ const DailyPieChartForPDF = ({ day, data, id }) => {
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius={90}
+            outerRadius={180}
             label={renderPercentLabel}
             labelLine={false}
           >
@@ -87,8 +84,8 @@ const DailyPieChartForPDF = ({ day, data, id }) => {
           <Legend
             verticalAlign="bottom"
             height={60}
-            iconSize={12}
-            wrapperStyle={{ fontSize: "11px" }}
+            iconSize={14}
+            wrapperStyle={{ fontSize: "13px" }}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -121,30 +118,65 @@ function App() {
 
   const generatePDF = async (dataArray, pdfName) => {
     const doc = new jsPDF();
-    const itemsPerPage = 2;
+    const pageW = 210;
+    const statColors = [
+      [136, 132, 216],
+      [130, 202, 157],
+      [255, 198, 88],
+      [255, 127, 127],
+    ];
+    const statLabels = ["Hann inte äta", "Tog för mycket", "Ogillade maten", "Slängde inte"];
+    const statKeys = ["one", "two", "three", "four"];
 
     for (let i = 0; i < dataArray.length; i++) {
       const data = dataArray[i];
       const day = data.day;
       const chartId = `pdf-pie-${day.replace(/-/g, "")}`;
 
-      if (i % itemsPerPage === 0 && i > 0) {
-        doc.addPage();
-      }
+      if (i > 0) doc.addPage();
 
-      const yStart = 60 + (i % itemsPerPage) * 145;
+      const total = statKeys.reduce((s, k) => s + (data[k] || 0), 0);
+      const pct = (v) => total > 0 ? `${((v / total) * 100).toFixed(0)}%` : "0%";
 
-      doc.setFontSize(12);
-      doc.text(`Statistik för ${day}`, 15, yStart);
+      // Header bar
+      doc.setFillColor(80, 80, 160);
+      doc.rect(0, 0, pageW, 22, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Matsal Statistik", pageW / 2, 14, { align: "center" });
 
-      doc.setFontSize(10);
-      const total = (data.one || 0) + (data.two || 0) + (data.three || 0) + (data.four || 0);
-      const pct = (value) => total > 0 ? ((value / total) * 100).toFixed(0) + "%" : "0%";
-      doc.text(`Hann inte äta: ${data.one || 0} (${pct(data.one || 0)})`, 20, yStart + 10);
-      doc.text(`Tog för mycket: ${data.two || 0} (${pct(data.two || 0)})`, 20, yStart + 18);
-      doc.text(`Ogillade maten: ${data.three || 0} (${pct(data.three || 0)})`, 20, yStart + 26);
-      doc.text(`Slängde inte: ${data.four || 0} (${pct(data.four || 0)})`, 20, yStart + 34);
+      // Date
+      doc.setTextColor(30, 30, 30);
+      doc.setFontSize(18);
+      const formattedDay = new Date(day).toLocaleDateString("sv-SE", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      doc.text(formattedDay, pageW / 2, 36, { align: "center" });
+
+      // Divider
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.5);
+      doc.line(15, 42, pageW - 15, 42);
+
+      // Total pill
+      doc.setFillColor(240, 240, 255);
+      doc.roundedRect(pageW / 2 - 35, 46, 70, 10, 2, 2, "F");
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(80, 80, 160);
+      doc.text(`Totalt: ${total} svar`, pageW / 2, 53, { align: "center" });
+
+      // Chart
       const chartElement = document.getElementById(chartId);
+      const chartWidth = 140;
+      const chartHeight = 130;
+      const chartX = (pageW - chartWidth) / 2;
+      const chartY = 60;
+
       if (chartElement) {
         try {
           const canvas = await html2canvas(chartElement, {
@@ -153,18 +185,51 @@ function App() {
             logging: false,
           });
           const imgData = canvas.toDataURL("image/png");
-          const imgWidth = 90;
-          const imgHeight = 100;
-          doc.addImage(imgData, "PNG", 105, yStart - 10, imgWidth, imgHeight);
+          doc.addImage(imgData, "PNG", chartX, chartY, chartWidth, chartHeight);
         } catch (err) {
-          console.error("Chart capture failed for", day, err);
           doc.setFontSize(10);
-          doc.text("[Graf kunde inte skapas]", 105, yStart + 30);
+          doc.setTextColor(180, 0, 0);
+          doc.text("[Graf kunde inte skapas]", pageW / 2, chartY + 65, { align: "center" });
         }
       } else {
         doc.setFontSize(10);
-        doc.text("[Graf ej tillgänglig]", 105, yStart + 30);
+        doc.setTextColor(180, 0, 0);
+        doc.text("[Graf ej tillgänglig]", pageW / 2, chartY + 65, { align: "center" });
       }
+
+      // Stats section
+      const statsY = chartY + chartHeight + 8;
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(50, 50, 50);
+      doc.text("Fördelning av svar:", 15, statsY);
+
+      statKeys.forEach((key, idx) => {
+        const value = data[key] || 0;
+        const rowY = statsY + 8 + idx * 16;
+        const [r, g, b] = statColors[idx];
+
+        // Row background
+        doc.setFillColor(248, 248, 255);
+        doc.roundedRect(15, rowY - 4, pageW - 30, 12, 1.5, 1.5, "F");
+
+        // Colored left accent bar
+        doc.setFillColor(r, g, b);
+        doc.rect(15, rowY - 4, 3.5, 12, "F");
+
+        // Label
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(50, 50, 50);
+        doc.text(statLabels[idx], 22, rowY + 4);
+
+        // Value badge
+        doc.setFillColor(r, g, b);
+        doc.roundedRect(pageW - 48, rowY - 2, 33, 8, 2, 2, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(255, 255, 255);
+        doc.text(`${value}  (${pct(value)})`, pageW - 31.5, rowY + 4, { align: "center" });
+      });
     }
 
     const fileName = pdfName.trim() || `statistik-${daysToShow}dagar`;
@@ -173,10 +238,6 @@ function App() {
 
   const handleDownloadData = () => {
     const data = rangeRows.slice(0, daysToShow);
-
-    console.log("Days to show:", daysToShow);
-    console.log("Data length for PDF:", data.length);
-    console.log("Days in PDF:", data.map(d => d.day));
 
     generatePDF(data, pdfName);
   };
@@ -285,7 +346,7 @@ function App() {
       return;
     }
 
-    const rowsForDisplay = (data || []).slice().reverse(); // oldest → newest for table
+    const rowsForDisplay = data || []; // newest → oldest
     setRangeRows(rowsForDisplay);
 
     const todayRow = rowsForDisplay.find((r) => r.day === todayStr);
@@ -303,7 +364,7 @@ function App() {
     if (!selectedDay) {
       const fallback =
         rowsForDisplay.find((r) => r.day === todayStr)?.day ??
-        rowsForDisplay[rowsForDisplay.length - 1]?.day ??
+        rowsForDisplay[0]?.day ??
         null;
       setSelectedDay(fallback);
     }

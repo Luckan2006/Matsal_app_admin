@@ -409,6 +409,10 @@ button:active {
     margin-bottom: 0.75rem;
   }
 
+  .panel-hide {
+    display: none;
+  }
+
   .admin-main {
     flex-direction: column;
     gap: 1rem;
