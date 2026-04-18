@@ -93,6 +93,14 @@ const DailyPieChartForPDF = ({ day, data, id }) => {
   );
 };
 
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
 function App() {
   const [session, setSession] = useState(null);
   const [checkingApproval, setCheckingApproval] = useState(true);
@@ -111,6 +119,11 @@ function App() {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [pdfName, setPdfName] = useState("");
+
+  const [schoolMenu, setSchoolMenu] = useState([]);
+  const [menuError, setMenuError] = useState(null);
+  const [savingFood, setSavingFood] = useState({});
+  const [manualFood, setManualFood] = useState("");
 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
@@ -329,13 +342,58 @@ function App() {
     });
   }
 
+  async function fetchSchoolMenu() {
+    setMenuError(null);
+    setSchoolMenu([]);
+    // The RSS feed returns the current day's menu.
+    // If it shows "Ingen meny för idag" it means no school food today (e.g. weekends).
+    const rssUrl = "https://skolmaten.se/sven-eriksonsgymnasiet";
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+
+    try {
+      const res = await fetch(proxyUrl);
+      if (!res.ok) throw new Error("proxy_error");
+      const json = await res.json();
+      const xml = new DOMParser().parseFromString(json.contents, "text/xml");
+
+      if (xml.querySelector("parsererror")) throw new Error("not_rss");
+
+      const items = Array.from(xml.querySelectorAll("item")).map((item) => {
+        const rawDate = item.querySelector("pubDate")?.textContent || "";
+        const parsedDate = rawDate ? new Date(rawDate) : null;
+        const dateStr = parsedDate && !isNaN(parsedDate)
+          ? parsedDate.toISOString().slice(0, 10)
+          : todayStr;
+        return {
+          title: item.querySelector("title")?.textContent || "",
+          description: item.querySelector("description")?.textContent || "",
+          date: dateStr,
+        };
+      }).filter((item) => item.description && item.description !== "Ingen meny för idag");
+
+      setSchoolMenu(items);
+    } catch {
+      setMenuError("Kunde inte hämta menyn från Skolmaten.");
+    }
+  }
+
+  async function saveFoodForDay(dayStr, food) {
+    setSavingFood((prev) => ({ ...prev, [dayStr]: true }));
+    const { error } = await supabase
+      .from("daily_clicks")
+      .upsert({ day: dayStr, food }, { onConflict: "day" });
+    if (error) console.error("Kunde inte spara meny:", error);
+    setSavingFood((prev) => ({ ...prev, [dayStr]: false }));
+    fetchClicks(daysToShow);
+  }
+
   async function fetchClicks(limitDays = daysToShow) {
     setLoading(true);
     setError(null);
 
     const { data, error } = await supabase
       .from("daily_clicks")
-      .select("day, one, two, three, four")
+      .select("day, one, two, three, four, food")
       .order("day", { ascending: false })
       .limit(limitDays);
 
@@ -376,6 +434,11 @@ function App() {
     if (!session) return;
     fetchClicks(daysToShow);
   }, [session, daysToShow]);
+
+  useEffect(() => {
+    if (!session) return;
+    fetchSchoolMenu();
+  }, [session]);
 
   const selectedRow = useMemo(() => {
     if (!selectedDay) return null;
@@ -545,6 +608,55 @@ function App() {
             </tbody>
           </table>
 
+          <div className="menu-section">
+            <h2>Dagens meny (Skolmaten)</h2>
+            {menuError && <p className="menu-error">{menuError}</p>}
+            {!menuError && schoolMenu.length === 0 && (
+              <p className="menu-empty">Ingen meny hittades för idag (helgdag eller lov).</p>
+            )}
+            {schoolMenu.length > 0 && (
+              <div className="menu-list">
+                {schoolMenu.map((item, idx) => (
+                  <div key={idx} className="menu-item">
+                    <div className="menu-item-info">
+                      <span className="menu-item-title">{item.title}</span>
+                      <span className="menu-item-desc">{item.description}</span>
+                    </div>
+                    <button
+                      className="menu-save-btn"
+                      disabled={savingFood[item.date || todayStr]}
+                      onClick={() => saveFoodForDay(item.date || todayStr, item.description)}
+                    >
+                      {savingFood[item.date || todayStr] ? "Sparar…" : "Spara för idag"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="menu-manual">
+              <input
+                type="text"
+                className="menu-manual-input"
+                placeholder="Ange meny manuellt för idag…"
+                value={manualFood}
+                onChange={(e) => setManualFood(e.target.value)}
+              />
+              <button
+                className="menu-save-btn"
+                disabled={!manualFood.trim() || savingFood[todayStr]}
+                onClick={() => {
+                  saveFoodForDay(todayStr, manualFood.trim());
+                  setManualFood("");
+                }}
+              >
+                {savingFood[todayStr] ? "Sparar…" : "Spara manuellt"}
+              </button>
+            </div>
+            <button className="refresh-btn" onClick={fetchSchoolMenu} style={{ marginTop: "0.5rem" }}>
+              Uppdatera från Skolmaten
+            </button>
+          </div>
+
           <div className="range-header">
             <h2>Historik</h2>
 
@@ -579,12 +691,13 @@ function App() {
                   <th>Tog för mycket</th>
                   <th>Ogillade maten</th>
                   <th>Slängde inte</th>
+                  <th>Meny</th>
                 </tr>
               </thead>
               <tbody>
                 {rangeRows.length === 0 && (
                   <tr>
-                    <td colSpan={5}>Ingen data tillgänglig ännu</td>
+                    <td colSpan={6}>Ingen data tillgänglig ännu</td>
                   </tr>
                 )}
 
@@ -605,6 +718,7 @@ function App() {
                       <td>{row.two}</td>
                       <td>{row.three}</td>
                       <td>{row.four}</td>
+                      <td className="food-cell">{row.food || "—"}</td>
                     </tr>
                   );
                 })}
