@@ -12,33 +12,122 @@ body {
   background: #e0e0e0;
 }
 
+/* ─── Page shell ─────────────────────────────────────────── */
+
 .admin {
   height: 100vh;
   width: 100vw;
   box-sizing: border-box;
-  padding: 1.25rem 1.75rem;
+  padding: 0.85rem 1.5rem;
   background: linear-gradient(135deg, #f5f5f5, #d0d0d0);
-  position: relative;
   display: flex;
   flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* ─── Top header bar ─────────────────────────────────────── */
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ─── Action buttons (header) ────────────────────────────── */
+
+.contact-btn,
+.download-btn,
+.logout-btn {
+  height: 2.2rem;
+  padding: 0 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition: transform 0.1s ease, background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.contact-btn,
+.download-btn,
+.logout-btn:hover {
+  transform: none;
+}
+
+.contact-btn:active,
+.download-btn:active,
+.logout-btn:active {
+  transform: scale(0.97);
+}
+
+.contact-btn {
+  background: #5050a0;
+  color: #fff;
+}
+
+.contact-btn:hover {
+  background: #6060b8;
+}
+
+.download-btn {
+  background: #606060;
+  color: #fff;
+}
+
+.download-btn:hover {
+  background: #777;
 }
 
 .logout-btn {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  border-radius: 0.75rem;
+  background: #b0b0b0;
+  color: #000;
 }
+
+.logout-btn:hover {
+  background: #c2c2c2;
+}
+
+/* ─── Generic button baseline ────────────────────────────── */
+
+button {
+  background: #b0b0b0;
+  color: #000;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+
+button:hover {
+  background: #c2c2c2;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ─── Mobile tabs ────────────────────────────────────────── */
 
 .tabs {
   display: none;
   gap: 0.5rem;
-  margin-top: 0.75rem;
 }
 
 .tab-btn {
   flex: 1;
-  padding: 0.65rem 0.9rem;
+  padding: 0.6rem 0.9rem;
   border-radius: 999px;
   border: 1px solid #cfcfcf;
   background: #f2f2f2;
@@ -61,21 +150,19 @@ body {
   border-color: #bdbdff;
 }
 
-.panel-show {
-  display: block;
-}
-.panel-hide {
-  display: block;
-}
+.panel-show { display: block; }
+.panel-hide { display: block; }
+
+/* ─── Two-column main area ───────────────────────────────── */
 
 .admin-main {
   flex: 1;
   display: flex;
-  gap: 1.75rem;
+  gap: 1.5rem;
   align-items: flex-start;
   max-width: 1300px;
+  width: 100%;
   margin: 0 auto;
-  margin-top: 2.5rem;
   overflow: hidden;
   min-height: 0;
 }
@@ -86,7 +173,7 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
   min-height: 0;
 }
 
@@ -99,40 +186,45 @@ body {
   min-height: 0;
   overflow: auto;
   padding-right: 0.25rem;
-  gap: 1rem;
+  gap: 0.85rem;
 }
+
+/* ─── Typography ─────────────────────────────────────────── */
 
 .admin h1 {
   margin: 0;
-  font-size: 2.1rem;
+  font-size: 1.9rem;
 }
 
 .admin-left h2,
 .admin-right h2,
 .admin-right h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
 }
+
+/* ─── Data tables ────────────────────────────────────────── */
 
 table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   border-radius: 0.6rem;
   overflow: hidden;
 }
 
 th,
 td {
-  padding: 0.7rem 0.9rem;
+  padding: 0.65rem 0.85rem;
   text-align: center;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #eee;
 }
 
 th {
   background: #f0f0f0;
   font-weight: 600;
+  font-size: 0.88rem;
 }
 
 .row-clickable {
@@ -148,18 +240,26 @@ th {
   font-weight: 700;
 }
 
+.food-cell {
+  color: #555;
+  font-style: italic;
+  word-break: break-word;
+  text-align: left;
+}
+
+/* ─── History controls ───────────────────────────────────── */
+
 .range-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 0.25rem;
 }
 
 .range-controls {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
 }
 
@@ -173,9 +273,9 @@ th {
 
 select,
 .refresh-btn {
-  height: 2.125rem;         
+  height: 2.1rem;
   padding: 0 0.75rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   border-radius: 0.5rem;
   border: 1px solid #cfcfcf;
   background: white;
@@ -193,7 +293,7 @@ select {
   background: #f8f8f8;
   color: #333;
   min-width: 110px;
-  border: 1px solid #cfcfcf;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
 .refresh-btn:hover {
@@ -207,37 +307,12 @@ select {
   border-radius: 0.6rem;
 }
 
-button {
-  background: #b0b0b0;
-  color: #000;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.1s ease, background-color 0.15s ease;
-}
-
-button:hover {
-  background: #c2c2c2;
-}
-
-button:active {
-  transform: scale(0.97);
-}
-
-.buttons-row {
-  margin-top: 0.75rem;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-start;
-}
+/* ─── Chart & summary ────────────────────────────────────── */
 
 .chart-card {
   background: #fff;
   border-radius: 0.6rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   padding: 0.75rem;
 }
 
@@ -253,24 +328,13 @@ button:active {
   border-radius: 999px;
   background: #efefef;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
 }
 
 .week-summary-box {
-  margin-top: 0.5rem;
   background: #f5f5f5;
   border-radius: 0.6rem;
   padding: 0.85rem 1rem;
-}
-
-.week-summary-box ul {
-  list-style: none;
-  padding-left: 0;
-  margin: 0.5rem 0 0;
-}
-
-.week-summary-box li {
-  margin-bottom: 0.2rem;
 }
 
 .summary-block {
@@ -299,37 +363,27 @@ button:active {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+  margin-bottom: 0.15rem;
 }
 
 .summary-dot {
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.summary-dot-one {
-  background: #8884d8;
-}
+.summary-dot-one   { background: #8884d8; }
+.summary-dot-two   { background: #82ca9d; }
+.summary-dot-three { background: #ffc658; }
+.summary-dot-four  { background: #ff7f7f; }
 
-.summary-dot-two {
-  background: #82ca9d;
-}
-
-.summary-dot-three {
-  background: #ffc658;
-}
-
-.summary-dot-four {
-  background: #ff7f7f;
-}
+/* ─── Popup overlay ──────────────────────────────────────── */
 
 .popup {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -341,48 +395,45 @@ button:active {
   padding: 2rem;
   border-radius: 0.75rem;
   text-align: center;
-  width: 300px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.download-btn {
-  background-color: darkgray;
-  color: white;
-  max-width: 200px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  border: none;
-  transition: background-color 0.2s ease;
+.popup-content h2 {
+  margin: 0;
 }
 
-.download-btn:hover {
-  background-color: #ddd;
+.pdf-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+  font-size: 0.95rem;
+  color: #333;
+  font-family: inherit;
 }
 
-.contact-btn {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  border-radius: 0.75rem;
-  background: #5050a0;
-  color: #fff;
+.pdf-input::placeholder {
+  color: #aaa;
 }
 
-.contact-btn:hover {
-  background: #6060b8;
+.pdf-input:focus {
+  outline: none;
+  border-color: #5050a0;
 }
+
+/* ─── Contact popup ──────────────────────────────────────── */
 
 .contact-popup {
   text-align: left;
-  min-width: 300px;
 }
 
 .contact-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin: 0.75rem 0 1.25rem 0;
+  gap: 0.45rem;
   font-size: 0.95rem;
 }
 
@@ -390,202 +441,50 @@ button:active {
   margin: 0;
 }
 
-.site-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.4rem 0.75rem;
-  background: rgba(0, 0, 0, 0.08);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  color: #555;
-  flex-shrink: 0;
-  margin-top: 0.5rem;
-}
+/* ─── Skolmaten menu section ─────────────────────────────── */
 
-.footer-contact-btn {
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  background: transparent;
-  color: #5050a0;
-  border: 1px solid #5050a0;
-  box-shadow: none;
-  border-radius: 0.4rem;
-}
-
-.footer-contact-btn:hover {
-  background: #f0f0ff;
-}
-
-.pdf-input {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1rem;
-  color: #aaa;
-  transition: color 0.3s ease;
-}
-
-.pdf-input:focus {
-  color: #000;
-  border-color: #007bff;
-}
-
-.pdf-input:valid {
-  color: #000;
-}
-
-.pdf-input::placeholder {
-  color: #aaa;
-}
-
-@media (max-width: 900px) {
-  html,
-  body {
-    overflow: auto;
-  }
-
-  .admin {
-    height: auto;
-    min-height: 100vh;
-    padding: 0.75rem;
-  }
-
-  .logout-btn {
-    position: fixed;
-    top: 0.6rem;
-    right: 0.6rem;
-    z-index: 20;
-    padding: 0.45rem 0.8rem;
-    font-size: 0.85rem;
-  }
-
-  .tabs {
-    display: flex;
-    margin-top: 2.2rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .panel-hide {
-    display: none;
-  }
-
-  .admin-main {
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 0;
-    overflow: visible;
-  }
-
-  .admin-left,
-  .admin-right {
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    overflow: visible;
-    padding: 0;
-  }
-
-  .range-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-
-  .range-controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-  }
-
-  .range-label {
-    width: 100%;
-  }
-
-  select,
-  .refresh-btn {
-    flex: 1 1 auto;
-    min-width: 140px;
-  }
-
-  table {
-    width: 100%;
-    table-layout: fixed;
-    font-size: 0.82rem;
-  }
-
-  th,
-  td {
-    padding: 0.45rem 0.3rem;
-    word-break: break-word;
-  }
-
-  th {
-    font-size: 0.75rem;
-  }
-
-  .chart-wrapper {
-    height: 240px;
-  }
-
-  .week-summary-box {
-    padding: 0.75rem;
-  }
-}
-
-@media (max-width: 480px) {
-  table {
-    font-size: 0.78rem;
-  }
-
-  .chart-wrapper {
-    height: 220px;
-  }
-
-  select,
-  .refresh-btn {
-    font-size: 0.9rem;
-    padding: 0 0.6rem;
-  }
-}
-
-/* Skolmaten menu section */
 .menu-section {
   background: #fff;
   border-radius: 0.6rem;
-  padding: 0.9rem 1rem;
-  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .menu-section h2 {
-  margin: 0 0 0.6rem 0;
+  margin: 0 0 0.4rem 0;
   font-size: 1rem;
 }
 
-.menu-error,
-.menu-empty {
-  color: #888;
-  font-size: 0.9rem;
-  margin: 0.25rem 0;
+.menu-note {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0 0 0.5rem 0;
 }
 
 .menu-error {
   color: #c0392b;
+  font-size: 0.88rem;
+  margin: 0.2rem 0;
+}
+
+.menu-empty {
+  color: #888;
+  font-size: 0.88rem;
+  margin: 0.2rem 0;
 }
 
 .menu-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .menu-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   background: #f7f7f7;
   border-radius: 0.4rem;
   padding: 0.5rem 0.75rem;
@@ -610,12 +509,19 @@ button:active {
   word-break: break-word;
 }
 
-.menu-save-btn {
+.menu-item-save {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   flex-shrink: 0;
+}
+
+.menu-save-btn {
   font-size: 0.8rem;
   padding: 0.3rem 0.7rem;
   background: #5050a0;
   color: #fff;
+  box-shadow: none;
 }
 
 .menu-save-btn:hover {
@@ -645,34 +551,141 @@ button:active {
   font-family: inherit;
 }
 
-.food-cell {
-  color: #555;
-  font-style: italic;
-  word-break: break-word;
-}
-
-.menu-note {
-  font-size: 0.82rem;
-  color: #666;
-  margin: 0 0 0.5rem 0;
-}
-
-.menu-item {
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.menu-item-save {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-shrink: 0;
-}
-
 .menu-date-input {
   padding: 0.3rem 0.5rem;
   border: 1px solid #ccc;
   border-radius: 0.4rem;
   font-size: 0.82rem;
   font-family: inherit;
+}
+
+/* ─── Footer ─────────────────────────────────────────────── */
+
+.site-footer {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.73rem;
+  color: #777;
+  padding: 0.35rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Mobile (≤ 900px) ───────────────────────────────────── */
+
+@media (max-width: 900px) {
+  html,
+  body {
+    overflow: auto;
+  }
+
+  .admin {
+    height: auto;
+    min-height: 100vh;
+    padding: 0.6rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .admin-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: transparent;
+  }
+
+  .contact-btn,
+  .download-btn,
+  .logout-btn {
+    height: 2rem;
+    font-size: 0.82rem;
+    padding: 0 0.85rem;
+  }
+
+  .tabs {
+    display: flex;
+  }
+
+  .panel-hide {
+    display: none;
+  }
+
+  .admin-main {
+    flex-direction: column;
+    gap: 1rem;
+    overflow: visible;
+  }
+
+  .admin-left,
+  .admin-right {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .range-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .range-controls {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .range-label {
+    width: 100%;
+  }
+
+  select,
+  .refresh-btn {
+    flex: 1 1 auto;
+    min-width: 120px;
+  }
+
+  table {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.82rem;
+  }
+
+  th,
+  td {
+    padding: 0.4rem 0.3rem;
+    word-break: break-word;
+  }
+
+  th {
+    font-size: 0.75rem;
+  }
+
+  .chart-wrapper {
+    height: 240px;
+  }
+
+  .week-summary-box {
+    padding: 0.75rem;
+  }
+
+  .site-footer {
+    font-size: 0.7rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  table {
+    font-size: 0.78rem;
+  }
+
+  .chart-wrapper {
+    height: 220px;
+  }
+
+  select,
+  .refresh-btn {
+    font-size: 0.88rem;
+    padding: 0 0.5rem;
+  }
 }

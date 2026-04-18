@@ -547,17 +547,19 @@ function App() {
         ))}
       </div>
 
-      <button className="logout-btn" onClick={logout}>
-        Logga ut
-      </button>
-
-      <button className="download-btn" onClick={handleOpenPopup}>
-        Ladda ner data
-      </button>
-
-      <button className="contact-btn" onClick={() => setIsContactOpen(true)}>
-        Kontakt
-      </button>
+      <header className="admin-header">
+        <div className="header-left">
+          <button className="contact-btn" onClick={() => setIsContactOpen(true)}>
+            Kontakt
+          </button>
+          <button className="download-btn" onClick={handleOpenPopup}>
+            Ladda ner data
+          </button>
+        </div>
+        <button className="logout-btn" onClick={logout}>
+          Logga ut
+        </button>
+      </header>
 
       {isPopupOpen && (
         <div className="popup">
@@ -876,8 +878,7 @@ function App() {
       )}
 
       <footer className="site-footer">
-        <span>© {new Date().getFullYear()} Matsal Statistik – Sven Eriksonsgymnasiet. Alla rättigheter förbehållna.</span>
-        <button className="footer-contact-btn" onClick={() => setIsContactOpen(true)}>Kontakt</button>
+        © {new Date().getFullYear()} Matsal Statistik – Sven Eriksonsgymnasiet. Alla rättigheter förbehållna.
       </footer>
     </div>
   );
