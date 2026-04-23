@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const res = await fetch("https://skolmaten.se/sven-eriksonsgymnasiet", {
+    const res = await fetch("https://skolmaten.se/sven-eriksonsgymnasiet/rss/", {
       headers: { Accept: "application/rss+xml" },
     });
 
